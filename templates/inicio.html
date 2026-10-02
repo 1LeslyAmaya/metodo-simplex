@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>Método Simplex</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='estilos.css') }}"
+    >
+
+    <script
+        src="{{ url_for('static', filename='formulario.js') }}"
+        defer
+    ></script>
+</head>
+
+<body>
+    <main>
+        <header>
+            <h1>Método Simplex</h1>
+        </header>
+
+        <p>
+            Resuelve problemas de maximización con restricciones
+            de tipo menor o igual que (≤).
+            Las variables y los lados derechos deben ser no negativos.
+        </p>
+
+        <noscript>
+            Para ingresar los datos, activa JavaScript en el navegador.
+        </noscript>
+
+        <form
+            id="formulario-simplex"
+            method="post"
+            action="{{ url_for('inicio') }}"
+        >
+            <!-- JavaScript reúne los valores de las casillas aquí. -->
+            <input
+                type="hidden"
+                id="objetivo"
+                name="objetivo"
+                value="{{ objetivo }}"
+            >
+
+            <textarea
+                id="restricciones"
+                name="restricciones"
+                hidden
+            >{{ restricciones }}</textarea>
+
+            <section>
+                <h2>Función objetivo</h2>
+
+                <p class="ayuda">
+                    Escribe el número que multiplica a cada variable.
+                    Usa punto para los decimales.
+                </p>
+
+                <div id="variables"></div>
+
+                <div class="botones">
+                    <button type="button" id="agregar-variable">
+                        + Agregar variable
+                    </button>
+
+                    <button type="button" id="quitar-variable">
+                        Quitar última variable
+                    </button>
+                </div>
+
+                <p id="vista-funcion" class="vista"></p>
+            </section>
+
+            <section>
+                <h2>Restricciones</h2>
+
+                <p class="ayuda">
+                    Completa cada restricción de arriba hacia abajo.
+                    Escribe 0 cuando una variable no aparezca.
+                </p>
+
+                <div id="lista-restricciones"></div>
+
+                <button type="button" id="agregar-restriccion">
+                    + Agregar restricción
+                </button>
+            </section>
+
+            <p
+                id="aviso"
+                class="ayuda"
+                aria-live="polite"
+            ></p>
+
+            <div class="botones">
+                <button type="submit" class="principal">
+                    Resolver ejercicio
+                </button>
+
+                <button type="button" id="limpiar-formulario">
+                    Limpiar datos
+                </button>
+            </div>
+        </form>
+
+        {% if error %}
+            <p class="error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        {% if resultado %}
+            <section id="resultados">
+                <h2>Resultado</h2>
+
+                {% if resultado["estado"] == "optimo" %}
+                    <p class="valor-optimo">
+                        Z máximo =
+                        {{ "%.6g"|format(resultado["z"]) }}
+                    </p>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Variable</th>
+                                <th>Valor óptimo</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for valor in resultado["x"] %}
+                                <tr>
+                                    <td>x{{ loop.index }}</td>
+                                    <td>
+                                        {{ "%.6g"|format(valor) }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+
+                            {% for valor in resultado["holguras"] %}
+                                <tr>
+                                    <td>
+                                        Holgura s{{ loop.index }}
+                                    </td>
+                                    <td>
+                                        {{ "%.6g"|format(valor) }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <p>
+                        Iteraciones realizadas:
+                        {{ resultado["iteraciones"] }}
+                    </p>
+
+                {% elif resultado["estado"] == "no_acotado" %}
+                    <p>
+                        Problema no acotado:
+                        Z puede crecer sin límite.
+                    </p>
+
+                {% else %}
+                    <p>
+                        Se alcanzó el límite de iteraciones.
+                        No se ha confirmado una solución óptima.
+                    </p>
+                {% endif %}
+
+                <h2>Procedimiento paso a paso</h2>
+
+                <p>
+                    LD significa lado derecho.
+                    Las variables s1, s2, etc., representan las holguras.
+                </p>
+
+                <pre>{{ procedimiento }}</pre>
+            </section>
+        {% endif %}
+    </main>
+</body>
+</html>
